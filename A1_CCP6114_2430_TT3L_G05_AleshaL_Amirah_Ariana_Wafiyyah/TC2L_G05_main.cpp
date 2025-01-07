@@ -89,6 +89,8 @@ void list_commands(){
 int main()
 {
     ifstream inputfile;
+    string words;
+    int semicolon_place;
 
     intro();
     while(loop == "True") // Check to see if the program still needs to run.
@@ -111,6 +113,27 @@ int main()
                 }
                 else if(input[0] == "READ" && input[1] == "FROM" && input[2] == "FILE"){
                     inputfile.open("fileInput.mdb");
+
+                    if (inputfile.is_open()) {
+                        while (getline(inputfile, words)) {
+
+                            // 1. CALL string.find() function to search for a specific string from
+                            //    each line of quote, and store the location in variable dashloc. Look up
+                            //    the C++ reference for strings to see in detail how to use this function.
+                            //    Notice that the author of the quote always appears after a double dash.
+                            semicolon_place = words.find(";");
+
+                            // Extract the substring containing the author name using the found location
+                            // of the double dash.
+                            string found;
+                            found = words.substr(0, semicolon_place);
+
+                            cout << found;
+                        }
+
+                    // close file
+                    inputfile.close();
+                    }
                 }
                 else
                 {
