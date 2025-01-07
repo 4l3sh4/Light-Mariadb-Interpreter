@@ -22,6 +22,7 @@
 #include <array> // For arrays, will be used for tables in the future.
 #include <sstream> // For getting individual words from a string.
 #include <algorithm> // For transform, so that we could change the user's input into all caps.
+#include <fstream> // To read files, and write inside files.
 using namespace std;
 
 string loop = "True"; // This allows the program to function in a loop.
@@ -65,8 +66,31 @@ vector<string> input_user() {
     return input;
 }
 
+void intro(){
+    cout << "*************************************************" << endl;
+    cout << "*   WELCOME TO THE LIGHT MARIADB INTERPRETER!   *" << endl;
+    cout << "*************************************************" << endl;
+    cout << "* TO SEE THE LIST OF ALL THE AVAILABLE COMMANDS *" << endl;
+    cout << "*        PLEASE TYPE 'LIST ALL COMMANDS'        *" << endl;
+    cout << "*************************************************" << endl;
+}
+
+void list_commands(){
+    cout << "******************************" << endl;
+    cout << "*   LIST OF EVERY COMMAND:   *" << endl;
+    cout << "******************************" << endl;
+    cout << "*  > CREATE DATABASE         *" << endl;
+    cout << "*  > CREATE TABLE            *" << endl;
+    cout << "*  > SELECT * FROM TABLE     *" << endl;
+    cout << "*  > READ FROM FILE          *" << endl;
+    cout << "******************************" << endl;
+}
+
 int main()
 {
+    ifstream inputfile;
+
+    intro();
     while(loop == "True") // Check to see if the program still needs to run.
     {
         input = {}; // Resetting the vector size to zero each time the user inputs something will allow us to reuse it.
@@ -80,7 +104,13 @@ int main()
                     cout << "Valid input!" << endl;
                     database_name = input[2]; // Initializing the database's name.
                     cout << "The database's name is " << database_name << "." << endl;
-                    // This is where the program ends for now. CREATE DATABASE function finished, yahoo! — Alesha
+                    // This is where the program ends for now. CREATE DATABASE function finished, yahoo! ï¿½ Alesha
+                }
+                else if(input[0] == "LIST" && input[1] == "ALL" && input[2] == "COMMANDS"){
+                    list_commands();
+                }
+                else if(input[0] == "READ" && input[1] == "FROM" && input[2] == "FILE"){
+                    inputfile.open("fileInput.mdb");
                 }
                 else
                 {
