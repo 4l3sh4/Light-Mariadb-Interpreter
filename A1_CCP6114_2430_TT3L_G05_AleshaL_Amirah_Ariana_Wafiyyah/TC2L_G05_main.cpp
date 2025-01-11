@@ -90,7 +90,7 @@ int main()
 {
     ifstream inputfile;
     string words;
-    int semicolon_place;
+    string file_name;
 
     intro();
     while(loop == "True") // Check to see if the program still needs to run.
@@ -115,22 +115,31 @@ int main()
                     inputfile.open("fileInput.mdb");
 
                     if (inputfile.is_open()) {
-                        while (getline(inputfile, words)) {
+                        while (getline(inputfile, words)){
 
                             // 1. CALL string.find() function to search for a specific string from
                             //    each line of quote, and store the location in variable dashloc. Look up
                             //    the C++ reference for strings to see in detail how to use this function.
                             //    Notice that the author of the quote always appears after a double dash.
-                            semicolon_place = words.find(";");
+                            int create_place = words.find("CREATE ");
+                            int file_place = words.find(".txt;");
+                            int database_place = words.find("DATABASES");
 
-                            // Extract the substring containing the author name using the found location
-                            // of the double dash.
-                            string found;
-                            found = words.substr(0, semicolon_place);
+                            if (create_place != string::npos && file_place != string::npos){
+                                // Extract the substring containing the author name using the found location
+                                // of the double dash.
+                                file_name = words.substr(create_place + 7, file_place - 7); // File name finally completed!
 
-                            cout << found;
+                                cout << "> CREATE " << file_name << ".txt;" << endl;
+                            }
+                            else if(database_place != string::npos){
+                            cout << "> " << "DATABASES" << ";" << endl;
+                            cout << "C:\\" << "mariadb\\" << file_name << ".mdb" << endl;
+                            }
+                            else{
+                                cout << endl;
+                            }
                         }
-
                     // close file
                     inputfile.close();
                     }
