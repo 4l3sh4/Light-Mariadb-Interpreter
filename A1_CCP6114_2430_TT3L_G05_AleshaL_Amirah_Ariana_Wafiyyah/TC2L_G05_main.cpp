@@ -27,8 +27,22 @@ using namespace std;
 
 string loop = "True"; // This allows the program to function in a loop.
 string words; // To get individual words from a user's input. Used in the input_user() function.
-string database_name;
+string database_name; // For the database's name.
+string file_name;
+bool database_name_check = false; // Database's name has not been determined yet.
 vector<string> input;
+
+// All the needed vectors
+vector<string> col1;
+vector<string> col2;
+vector<string> col3;
+vector<string> col4;
+vector<string> col5;
+vector<string> col6;
+vector<string> col7;
+vector<string> col8;
+vector<string> col9;
+vector<string> col10;
 
 // Going to use this code a lot so might as well turn it into a function, LOL!
 // For user input.
@@ -44,10 +58,6 @@ vector<string> input_user() {
         // Get another input from the user.
         getline(cin,words);
     }
-
-    // Turning the user's input into all caps.
-    // https://www.geeksforgeeks.org/how-to-convert-std-string-to-lower-case-in-cpp/
-    transform(words.begin(), words.end(), words.begin(), ::toupper);
 
     // I heavily referenced this website link to create the code below.
     // https://www.geeksforgeeks.org/split-string-by-space-into-vector-in-cpp-stl/
@@ -81,7 +91,9 @@ void list_commands(){
     cout << "******************************" << endl;
     cout << "*  > CREATE DATABASE         *" << endl;
     cout << "*  > CREATE TABLE            *" << endl;
-    cout << "*  > SELECT * FROM TABLE     *" << endl;
+    cout << "*  > UPDATE TABLE            *" << endl;
+    cout << "*  > DELETE FROM TABLE       *" << endl;
+    cout << "*  > SELECT FROM TABLE       *" << endl;
     cout << "*  > READ FROM FILE          *" << endl;
     cout << "******************************" << endl;
 }
@@ -101,18 +113,34 @@ int main()
             input_user();
             if(input.size() == 3) // Making sure that there are at least three words in the user's input.
             {
+                // CREATE DATABASE
                 if(input[0] == "CREATE" && input[1] == "DATABASE") // Making sure that the user's input has 'CREATE DATABASE' in it.
                 {
-                    cout << "Valid input!" << endl;
-                    database_name = input[2]; // Initializing the database's name.
-                    cout << "The database's name is " << database_name << "." << endl;
-                    // This is where the program ends for now. CREATE DATABASE function finished, yahoo! � Alesha
+                    if(database_name_check == false){
+                        cout << "Valid input!" << endl;
+                        database_name = input[2]; // Initializing the database's name.
+                        cout << "The database's name is " << database_name << "." << endl << endl;
+                        database_name_check = true;
+                    }
+                    else{
+                    cout << "You already have a database! " << endl;
+                    cout << "The database's name is " << database_name << "." << endl << endl;
+                    }
                 }
+                // LIST ALL COMMANDS
                 else if(input[0] == "LIST" && input[1] == "ALL" && input[2] == "COMMANDS"){
                     list_commands();
                 }
-                else if(input[0] == "READ" && input[1] == "FROM" && input[2] == "FILE"){
-                    inputfile.open("fileInput.mdb");
+                // READ FROM FILE (THE MAIN PART OF THE ASSIGNMENT)
+                else
+                {
+                    cout << "Not a valid input!" << endl;
+                }
+            }
+            else if(input.size() == 4){
+                if(input[0] == "READ" && input[1] == "FROM" && input[2] == "FILE"){
+                    file_name = input[3];
+                    inputfile.open(file_name);
 
                     if (inputfile.is_open()) {
                         while (getline(inputfile, words)){
@@ -144,10 +172,11 @@ int main()
                     inputfile.close();
                     }
                 }
-                else
-                {
-                    cout << "Not a valid input!" << endl;
-                }
+
+            }
+            // code from here
+            else if(input.size() > 4){
+                cout << "Lol" << endl;
             }
             else{
                 cout << "Not a valid input!" << endl;
