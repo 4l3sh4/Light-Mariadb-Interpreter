@@ -131,17 +131,24 @@ void createTable(string& command, ofstream& outputFile) {
     vector<string> columnList;
     istringstream columnStream(columns);
     string column;
-
-    while (getline(columnStream, column, ',')) {
-        column.erase(column.find_last_not_of(" \t\n\r") + 1); // Trim trailing whitespace
-        column.erase(0, column.find_first_not_of(" \t\n\r")); // Trim leading whitespace
+    while (getline(columnStream >> ws, column, ',')) { // `ws` skips leading whitespace
         columnList.push_back(column);
+    }
+
+    // Use vector<vector<string>> to store columns dynamically
+    vector<vector<string>> columnData(columnList.size());
+    for (size_t i = 0; i < columnList.size(); ++i) {
+        istringstream colStream(columnList[i]);
+        string colName;
+        colStream >> colName;
+        columnData[i].push_back(colName); // Store column name
     }
 
     // Check if the columns meet requirements
     if (!validateColumns(columnList)) {
         return;
     }
+
 
     // Write output into the output file
     outputFile << "> CREATE TABLE " << tableName << endl;
