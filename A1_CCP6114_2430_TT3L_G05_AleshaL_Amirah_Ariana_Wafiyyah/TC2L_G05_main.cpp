@@ -134,15 +134,7 @@ void createTable(string& command, ofstream& outputFile) {
     while (getline(columnStream >> ws, column, ',')) { // `ws` skips leading whitespace
         columnList.push_back(column);
     }
-
-    // Use vector<vector<string>> to store columns dynamically
-    vector<vector<string>> columnData(columnList.size());
-    for (size_t i = 0; i < columnList.size(); ++i) {
-        istringstream colStream(columnList[i]);
-        string colName;
-        colStream >> colName;
-        columnData[i].push_back(colName); // Store column name
-    }
+    
 
     // Check if the columns meet requirements
     if (!validateColumns(columnList)) {
