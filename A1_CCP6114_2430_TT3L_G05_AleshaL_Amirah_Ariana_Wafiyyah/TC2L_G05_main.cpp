@@ -27,7 +27,9 @@ using namespace std;
 
 string loop = "True"; // This allows the program to function in a loop.
 string words; // To get individual words from a user's input. Used in the input_user() function.
-string database_name;
+string database_name; // For the database's name.
+string file_name;
+bool database_name_check = false; // Database's name has not been determined yet.
 vector<string> input;
 
 // Going to use this code a lot so might as well turn it into a function, LOL!
@@ -35,29 +37,19 @@ vector<string> input;
 vector<string> input_user() {
 
     // We use getline to split the user's sentence into words.
-    getline(cin,words);
+    getline(cin, words);
 
     // To avoid user from inputting an empty input.
-    while(words == "")
-    {
+    while (words == "") {
         cout << "Not a valid input!" << endl;
         // Get another input from the user.
-        getline(cin,words);
+        getline(cin, words);
     }
 
-    // Turning the user's input into all caps.
-    // https://www.geeksforgeeks.org/how-to-convert-std-string-to-lower-case-in-cpp/
-    transform(words.begin(), words.end(), words.begin(), ::toupper);
-
-    // I heavily referenced this website link to create the code below.
-    // https://www.geeksforgeeks.org/split-string-by-space-into-vector-in-cpp-stl/
-
     string s;
-
     stringstream ss(words);
 
     while (getline(ss, s, ' ')) {
-
         // Store individual words into the vector.
         input.push_back(s);
     }
@@ -66,7 +58,7 @@ vector<string> input_user() {
     return input;
 }
 
-void intro(){
+void intro() {
     cout << "*************************************************" << endl;
     cout << "*   WELCOME TO THE LIGHT MARIADB INTERPRETER!   *" << endl;
     cout << "*************************************************" << endl;
@@ -75,47 +67,159 @@ void intro(){
     cout << "*************************************************" << endl;
 }
 
-void list_commands(){
+void list_commands() {
     cout << "******************************" << endl;
     cout << "*   LIST OF EVERY COMMAND:   *" << endl;
     cout << "******************************" << endl;
     cout << "*  > CREATE DATABASE         *" << endl;
     cout << "*  > CREATE TABLE            *" << endl;
-    cout << "*  > SELECT * FROM TABLE     *" << endl;
+    cout << "*  > UPDATE TABLE            *" << endl;
+    cout << "*  > DELETE FROM TABLE       *" << endl;
+    cout << "*  > SELECT FROM TABLE       *" << endl;
     cout << "*  > READ FROM FILE          *" << endl;
     cout << "******************************" << endl;
 }
 
-int main()
-{
+bool validateColumns(const vector<string>& column) {
+    if (column.size() > 10) {
+        cout << "Only maximum 10 columns is allowed." << endl;
+        return false;
+    }
+
+    for (const string& col : column) {
+        istringstream colStream(col);
+        string colName, colType;
+        colStream >> colName >> colType;
+
+        if (colType != "INT" && colType != "TEXT") {
+            cout << "Invalid data type: " << colType << " in column " << col << endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+// Function to process the "CREATE TABLE"
+void createTable(string& command, ofstream& outputFile) {
+    istringstream ss(command);
+    string word, tableName, columns;
+    bool foundCreateTable = false;
+
+    // Search "CREATE TABLE" from input file and extract table name
+    while (ss >> word) {
+        if (word == "CREATE") {
+            ss >> word; // read the next word
+            if (word == "TABLE") {
+                ss >> tableName; // the next word will be the table name
+                foundCreateTable = true;
+                break;
+            }
+        }
+    }
+
+    // Extract columns between parentheses
+    size_t start = command.find("(");
+    size_t finish = command.find(")");
+    if (start != string::npos && finish != string::npos && finish > start) {
+        columns = command.substr(start + 1, finish - start - 1);
+    } else {
+        cout << "Invalid syntax: missing parentheses." << endl;
+        return;
+    }
+
+    // Split columns by commas
+    vector<string> columnList;
+    istringstream columnStream(columns);
+    string column;
+
+    while (getline(columnStream, column, ',')) {
+        column.erase(column.find_last_not_of(" \t\n\r") + 1); // Trim trailing whitespace
+        column.erase(0, column.find_first_not_of(" \t\n\r")); // Trim leading whitespace
+        columnList.push_back(column);
+    }
+
+    // Check if the columns meet requirements
+    if (!validateColumns(columnList)) {
+        return;
+    }
+
+    // Write output into the output file
+    outputFile << "> CREATE TABLE " << tableName << endl;
+    for (size_t i = 0; i < columnList.size(); ++i) {
+        size_t spacePos = columnList[i].find(' ');
+        if (spacePos != string::npos) {
+            outputFile << "   " << columnList[i].substr(0, spacePos); // Write column name without type
+        } else {
+            outputFile << "   " << columnList[i]; // If no type, write full column
+        }
+        if (i < columnList.size() - 1) {
+            outputFile << ",";
+        }
+        outputFile << endl;
+    }
+    outputFile << ");" << endl << endl;
+
+    // Print to screen
+    cout << "> CREATE TABLE " << tableName << endl;
+    for (size_t i = 0; i < columnList.size(); ++i) {
+        size_t spacePos = columnList[i].find(' ');
+        if (spacePos != string::npos) {
+            cout << "    " << columnList[i].substr(0, spacePos); // Print column name without type
+        } else {
+            cout << "    " << columnList[i]; // If no type, print full column
+        }
+        if (i < columnList.size() - 1) {
+            cout << ",";
+        }
+        cout << endl;
+    }
+    cout << ");" << endl << endl;
+}
+
+int main() {
     ifstream inputfile;
     string words;
     string file_name;
 
     intro();
-    while(loop == "True") // Check to see if the program still needs to run.
+    while (loop == "True") // Check to see if the program still needs to run.
     {
         input = {}; // Resetting the vector size to zero each time the user inputs something will allow us to reuse it.
-        if(loop =="True") // Making sure that the vector size is always 0 when we loop the program.
+        if (loop == "True") // Making sure that the vector size is always 0 when we loop the program.
         {
             input_user();
-            if(input.size() == 3) // Making sure that there are at least three words in the user's input.
+            if (input.size() == 3) // Making sure that there are at least three words in the user's input.
             {
-                if(input[0] == "CREATE" && input[1] == "DATABASE") // Making sure that the user's input has 'CREATE DATABASE' in it.
+                // CREATE DATABASE
+                if (input[0] == "CREATE" && input[1] == "DATABASE") // Making sure that the user's input has 'CREATE DATABASE' in it.
                 {
-                    cout << "Valid input!" << endl;
-                    database_name = input[2]; // Initializing the database's name.
-                    cout << "The database's name is " << database_name << "." << endl;
-                    // This is where the program ends for now. CREATE DATABASE function finished, yahoo! � Alesha
+                    if (database_name_check == false) {
+                        cout << "Valid input!" << endl;
+                        database_name = input[2]; // Initializing the database's name.
+                        cout << "The database's name is " << database_name << "." << endl << endl;
+                        database_name_check = true;
+                    } else {
+                        cout << "You already have a database! " << endl;
+                        cout << "The database's name is " << database_name << "." << endl << endl;
+                    }
                 }
-                else if(input[0] == "LIST" && input[1] == "ALL" && input[2] == "COMMANDS"){
+                // LIST ALL COMMANDS
+                else if (input[0] == "LIST" && input[1] == "ALL" && input[2] == "COMMANDS") {
                     list_commands();
                 }
-                else if(input[0] == "READ" && input[1] == "FROM" && input[2] == "FILE"){
-                    inputfile.open("fileInput.mdb");
+                // READ FROM FILE (THE MAIN PART OF THE ASSIGNMENT)
+                else {
+                    cout << "Not a valid input!" << endl;
+                }
+            } else if (input.size() == 4) {
+                if (input[0] == "READ" && input[1] == "FROM" && input[2] == "FILE") {
+                    file_name = input[3];
+                    inputfile.open(file_name);
 
                     if (inputfile.is_open()) {
-                        while (getline(inputfile, words)){
+                            string words, command;
+                            bool creatingTable = false;
+                        while (getline(inputfile, words)) {
 
                             // 1. CALL string.find() function to search for a specific string from
                             //    each line of quote, and store the location in variable dashloc. Look up
@@ -125,31 +229,38 @@ int main()
                             int file_place = words.find(".txt;");
                             int database_place = words.find("DATABASES");
 
-                            if (create_place != string::npos && file_place != string::npos){
+                            if (create_place != string::npos && file_place != string::npos) {
                                 // Extract the substring containing the author name using the found location
                                 // of the double dash.
                                 file_name = words.substr(create_place + 7, file_place - 7); // File name finally completed!
 
                                 cout << "> CREATE " << file_name << ".txt;" << endl;
+                            } else if (database_place != string::npos) {
+                                cout << "> " << "DATABASES" << ";" << endl;
+                                cout << "C:\\" << "mariadb\\" << file_name << ".mdb" << endl;
                             }
-                            else if(database_place != string::npos){
-                            cout << "> " << "DATABASES" << ";" << endl;
-                            cout << "C:\\" << "mariadb\\" << file_name << ".mdb" << endl;
+                            // Check for "CREATE TABLE"
+                            else if (words.find("CREATE TABLE") != string::npos) {
+                                creatingTable = true;
+                                command = words;
+                            } else if (creatingTable) {
+                                // Append lines until ')' is found
+                                command += " " + words;
+                                if (words.find(")") != string::npos) {
+                                    creatingTable = false;
+                                    ofstream outputFile;
+                                    createTable(command, outputFile);
+                                    command.clear();
+                                }
                             }
-                            else{
-                                cout << endl;
+                              }
                             }
+
                         }
-                    // close file
-                    inputfile.close();
+                        // close file
+                        inputfile.close();
                     }
-                }
-                else
-                {
-                    cout << "Not a valid input!" << endl;
-                }
-            }
-            else{
+            else {
                 cout << "Not a valid input!" << endl;
             }
         }
