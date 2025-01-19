@@ -31,6 +31,10 @@ string database_name; // For the database's name.
 string file_name;
 bool database_name_check = false; // Database's name has not been determined yet.
 vector<string> input;
+string tableName;  // Variable to hold the table name
+vector<string> colNames, colTypes;
+vector<string> *pointer1 = &colNames;
+vector<string> *pointer2 = &colTypes;
 
 // Going to use this code a lot so might as well turn it into a function, LOL!
 // For user input.
@@ -99,82 +103,326 @@ bool validateColumns(const vector<string>& column) {
     return true;
 }
 
+// ARIANA
 // Function to process the "CREATE TABLE"
 string createTable(string& command, ofstream& outputFile) {
     istringstream ss(command);
     string word, tableName, columns;
     bool foundCreateTable = false;
 
-    // Search "CREATE TABLE" from input file and extract table name
+    // Search "CREATE TABLE" and extract table name
     while (ss >> word) {
         if (word == "CREATE") {
             ss >> word; // read the next word
             if (word == "TABLE") {
-                ss >> tableName; // the next word will be the table name
-                tableName.pop_back();
+                ss >> tableName; // get the table name
+                tableName.pop_back(); // Removing the ending semicolon or unwanted character
                 foundCreateTable = true;
                 break;
             }
         }
     }
 
-    // Extract columns between parentheses
-    size_t start = command.find("(");
-    size_t finish = command.find(")");
-    if (start != string::npos && finish != string::npos && finish > start) {
-        columns = command.substr(start + 1, finish - start - 1);
-    } else {
-        cout << "Invalid syntax: missing parentheses." << endl;
+    if (!foundCreateTable) {
+        cout << "Invalid CREATE TABLE command!" << endl;
         return "";
     }
 
-    // Split columns by commas
+    // Extract columns between parentheses
+    size_t start = command.find("(");
+    size_t finish = command.find(")");
+    if (start == string::npos || finish == string::npos || finish <= start) {
+        cout << "Invalid syntax: missing parentheses or columns definition." << endl;
+        return "";
+    }
+
+    columns = command.substr(start + 1, finish - start - 1); // Get the columns definition
+
+    /*
+    // Split columns by commas and separate name from type
     vector<string> columnList;
     istringstream columnStream(columns);
     string column;
-    while (getline(columnStream >> ws, column, ',')) { // `ws` skips leading whitespace
-        columnList.push_back(column);
+    while (getline(columnStream >> ws, column, ',')) {
+        columnList.push_back(column); // Add column to the list
     }
 
-    // Check if the columns meet requirements
+    // Separate column name and type into a vector of vectors for easy use
+    vector<vector<string>> columnData(columnList.size());
+    for (size_t i = 0; i < columnList.size(); ++i) {
+        istringstream colStream(columnList[i]);
+        string colName, colType;
+        colStream >> colName >> colType; // Get column name and type
+        columnData[i].push_back(colName); // Store column name
+        columnData[i].push_back(colType); // Store column type
+    }
+    */
+
+    // Split the column definitions
+    vector<string> columnList;
+    istringstream columnStream(columns);
+    string column;
+    while (getline(columnStream >> ws, column, ',')) {
+        columnList.push_back(column); // Add each column definition to the list
+    }
+
+    // Separate column names and types into two vectors
+    vector<string> colNames, colTypes;
+    for (const string& colDef : columnList) {
+        istringstream colStream(colDef);
+        string colName, colType;
+        if (!(colStream >> colName >> colType)) {
+            cout << "Invalid column definition: " << colDef << endl;
+            return "";
+        }
+        colNames.push_back(colName);
+        colTypes.push_back(colType);
+    }
+
+    // Ensure columns meet requirements (if any function for validation exists)
     if (!validateColumns(columnList)) {
         return "";
     }
 
-
-    // Write output into the output file
+    // Output to file
     outputFile << "> CREATE TABLE " << tableName << endl;
     for (size_t i = 0; i < columnList.size(); ++i) {
         size_t spacePos = columnList[i].find(' ');
         if (spacePos != string::npos) {
-            outputFile << "   " << columnList[i].substr(0, spacePos); // Write column name without type
+            outputFile << "   " << columnList[i].substr(0, spacePos); // Column name only
         } else {
-            outputFile << "   " << columnList[i]; // If no type, write full column
+            outputFile << "   " << columnList[i]; // Full column definition
         }
         if (i < columnList.size() - 1) {
-            outputFile << ",";
+            outputFile << ","; // Comma after each column except the last
         }
         outputFile << endl;
     }
     outputFile << ");" << endl << endl;
 
-    // Print to screen
+    // Output to screen
     cout << "> CREATE TABLE " << tableName << endl;
     for (size_t i = 0; i < columnList.size(); ++i) {
         size_t spacePos = columnList[i].find(' ');
         if (spacePos != string::npos) {
-            cout << "    " << columnList[i].substr(0, spacePos); // Print column name without type
+            cout << "    " << columnList[i].substr(0, spacePos); // Column name only
         } else {
-            cout << "    " << columnList[i]; // If no type, print full column
+            cout << "    " << columnList[i]; // Full column definition
         }
         if (i < columnList.size() - 1) {
-            cout << ",";
+            cout << ","; // Comma after each column except the last
         }
         cout << endl;
     }
     cout << ");" << endl << endl;
+
+    *pointer1 = colNames;
+    *pointer2 = colTypes;
+
+    return tableName; // Return tableName
 }
 
+string trim(const string& str) {
+    size_t first = str.find_first_not_of(" \t");
+    size_t last = str.find_last_not_of(" \t");
+    return (first == string::npos) ? "" : str.substr(first, (last - first + 1));
+}
+
+bool validateColVal(const string& command, const vector<string>& colNames, const vector<string>& colTypes) {
+    vector<string> inputColumns, inputValues;
+
+    // Extract columns and values parts from the command
+    size_t colStart = command.find("(");
+    size_t colEnd = command.find(")");
+    size_t valuesStart = command.find("VALUES");
+
+    if (colStart == string::npos && colEnd == string::npos && valuesStart == string::npos) {
+        cout << "Error: Invalid command format." << endl;
+        return false;
+    }
+
+    string columnsPart = command.substr(colStart + 1, colEnd - colStart - 1);
+    string valuesPart = command.substr(valuesStart + 7, command.find(");") - valuesStart - 6);
+
+    istringstream columnsStream(columnsPart);
+    string column;
+    while (getline(columnsStream, column, ',')) {
+        column.erase(remove(column.begin(), column.end(), ' '), column.end()); // Trim spaces
+        inputColumns.push_back(column);
+    }
+
+    // Split the values into a vector
+    istringstream valuesStream(valuesPart);
+    string value;
+    while (getline(valuesStream, value, ',')) {
+        value.erase(remove(value.begin(), value.end(), ' '), value.end()); // Trim spaces
+        if (!value.empty() && value[0] == '(') {
+        value.erase(0, 1); // Remove the first character
+        }
+        inputValues.push_back(value);
+    }
+
+    /* Debug Purpose Only: Print colNames and inputColumns
+    cout << "Table Columns (colNames): ";
+    for (const auto& col : *pointer1) {
+        cout << col << " ";
+    }
+    cout << endl;
+
+    cout << "Input Columns (inputColumns): ";
+    for (const auto& col : *pointer2) {
+        cout << col << " ";
+    }
+    cout << endl;
+    */
+
+    // Ensure the number of columns and values match
+    if (inputColumns.size() != inputValues.size()) {
+        cout << "Error: Mismatch between columns and values." << endl;
+        return false;
+    }
+
+    // Check if all input column names exist in the table column names
+    for (const auto& inputCol : inputColumns) {
+        if (find(colNames.begin(), colNames.end(), inputCol) == colNames.end()) {
+            cout << "Error: Column " << inputCol << " does not exist in the table." << endl;
+            return false;
+        }
+    }
+
+    // Check if the data types match for each value
+    for (size_t i = 0; i < inputColumns.size(); ++i) {
+        auto it = find(colNames.begin(), colNames.end(), inputColumns[i]);
+        if (it == colNames.end()) {
+            cout << "Error: Column " << inputColumns[i] << " does not exist in the table." << endl;
+            return false;
+        }
+
+        size_t colIndex = distance(colNames.begin(), it); // Get the index of the column in colNames
+
+        if (colTypes[colIndex] == "INT") {
+            // Check if the value is a valid integer
+            if (inputValues[i].empty() || !all_of(inputValues[i].begin(), inputValues[i].end(), ::isdigit)) {
+                cout << "Error: Value " << inputValues[i] << " is not an integer for column " << inputColumns[i] << "." << endl;
+                return false;
+            }
+        } else if (colTypes[colIndex] == "TEXT") {
+            // For text values, we assume all strings are valid
+            continue;
+        } else {
+            cout << "Error: Unsupported data type " << colTypes[colIndex] << " for column " << inputColumns[i] << "." << endl;
+            return false;
+        }
+    }
+
+    return true; // Validation successful
+}
+
+string insertIntoTable(string& command, ofstream& outputFile, const string& tableName, vector<string> colNames, vector<string> colTypes){
+    istringstream ss(command);
+    string word, inputTableName, columns, values;
+    vector<string> tableData;
+    bool foundInsert = false;
+
+    colNames = *pointer1;
+    colTypes = *pointer2;
+
+    size_t insertPos = command.find("INSERT INTO");
+    size_t valuesPos = command.find("VALUES");
+
+    if (insertPos == string::npos && valuesPos == string::npos) {
+        cout << "Error: Invalid syntax." << endl;
+        return "";}
+
+    // Extract table name
+    if(valuesPos != string::npos){
+        size_t tableNamePos = 0; // Skip "INSERT INTO"
+        int bracket_place = command.find("(");
+        inputTableName = command.substr(tableNamePos, bracket_place);
+        inputTableName = trim(inputTableName);  // Remove leading/trailing spaces
+        cout << inputTableName;
+
+        // Check if table name is valid
+        if (inputTableName != tableName) {
+            cout << "Error: Table " << inputTableName << " does not exist." << endl;
+            return "";
+        }
+    }
+
+    if(valuesPos != string::npos){
+        if (!validateColVal(command, colNames, colTypes)) {
+            return "";
+        }
+        string valuesPart = command.substr(valuesPos + 6); // Skip "VALUES"
+        size_t valuesEnd = valuesPart.find_last_of(");");
+        if (valuesEnd != string::npos) {
+            valuesPart = valuesPart.substr(0, valuesEnd);
+        }
+
+        istringstream valuesStream(valuesPart);
+        string value;
+        while (getline(valuesStream, value, ',')) {
+            value.erase(remove(value.begin(), value.end(), ' '), value.end()); // Remove spaces
+            if (!value.empty() && value[0] == '(') {
+                value.erase(0, 1); // Remove the leading '(' if present
+            }
+            if (!value.empty() && value.back() == ')') {
+                value.pop_back(); // Remove the trailing ')' if present
+            }
+            tableData.push_back(value);
+        }
+    }
+
+    // Write the insert statement to the output file
+    if(insertPos != string::npos){
+    cout << "> INSERT INTO " << endl;
+    }
+
+    if(valuesPos != string::npos){
+    cout << "   (";
+    for (size_t i = 0; i < colNames.size(); ++i) {
+        cout << colNames[i];
+        if (i < colNames.size() - 1) {
+            cout << ", ";
+        }
+    }
+    cout << ")" << endl;
+
+    cout << "   VALUES (";
+    for (size_t i = 0; i < tableData.size(); ++i) {
+        cout << tableData[i];
+        if (i < tableData.size() - 1) {
+            cout << ", ";
+        }
+    }
+    cout << ");" << endl << endl;
+    }
+
+
+    /*
+    // Print the insert statement to the console
+    cout << "> INSERT INTO " << tableName << endl;
+    cout << "   (";
+    for (size_t i = 0; i < columns.size(); ++i) {
+        cout << columns[i];
+        if (i < columns.size() - 1) {
+            cout << ", ";
+        }
+    }
+    cout << ")" << endl;
+
+    cout << "   VALUES (";
+    for (size_t i = 0; i < values.size(); ++i) {
+        cout << values[i];
+        if (i < values.size() - 1) {
+            cout << ", ";
+        }
+    }
+    cout << ");" << endl << endl;
+    */
+
+    return "INSERT INTO processed";
+}
 
 
 int main() {
@@ -251,16 +499,24 @@ int main() {
                                 if (words.find(")") != string::npos) {
                                     creatingTable = false;
                                     ofstream outputFile;
-                                    createTable(command, outputFile);
+                                    string createTableResult = createTable(command, outputFile);  // Make sure 'command' holds the user input for CREATE TABLE
+                                    if (!createTableResult.empty()) {
+                                        tableName = createTableResult;  // Store the created table name
+                                    }
                                     command.clear();
                                     }
                                 }
                             else if (words.find("INSERT INTO") != string::npos){
-
+                                ofstream outputFile;
+                                insertIntoTable(words, outputFile, tableName, *pointer1, *pointer2);
                             }
-                              }
+                            else if (words.find("VALUES") != string::npos){
+                                ofstream outputFile;
+                                insertIntoTable(words, outputFile, tableName, *pointer1, *pointer2);
+                            }
                         }
                     }
+                }
                         // close file
                         inputfile.close();
                     }
