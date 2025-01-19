@@ -36,6 +36,9 @@ vector<string> colNames, colTypes;
 vector<string> *pointer1 = &colNames;
 vector<string> *pointer2 = &colTypes;
 
+vector<vector<string>> columnAllData;
+vector<vector<string>> *pointer3 = &columnAllData;
+
 // Going to use this code a lot so might as well turn it into a function, LOL!
 // For user input.
 vector<string> input_user() {
@@ -398,6 +401,7 @@ string insertIntoTable(string& command, ofstream& outputFile, const string& tabl
     cout << ");" << endl << endl;
     }
 
+    (*pointer3).push_back(tableData);
 
     /*
     // Print the insert statement to the console
