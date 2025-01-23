@@ -342,9 +342,7 @@ string insertIntoTable(string& command, ofstream& outputFile, const string& tabl
             cout << "Error: Table " << inputTableName << " does not exist." << endl;
             return "";
         }
-    }
 
-    if(valuesPos != string::npos){
         if (!validateColVal(command, colNames, colTypes)) {
             return "";
         }
@@ -372,7 +370,6 @@ string insertIntoTable(string& command, ofstream& outputFile, const string& tabl
     if(insertPos != string::npos){
     cout << "> INSERT INTO " << endl;
     }
-
     if(valuesPos != string::npos){
     cout << " (";
     for (size_t i = 0; i < colNames.size(); ++i) {
