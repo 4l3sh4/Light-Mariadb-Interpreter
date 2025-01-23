@@ -428,6 +428,54 @@ string insertIntoTable(string& command, ofstream& outputFile, const string& tabl
     return "INSERT INTO processed";
 }
 
+string countRows (string& command, ofstream& outputFile, const string& tableName, const vector<vector<string>>& columnAllData){
+    //dowoon
+    istringstream ss(command);
+    string word, inputTableName;
+    int numRows;
+
+    size_t countPos = command.find("COUNT(*)");
+    size_t fromPos = command.find("FROM");
+
+    if (countPos == string::npos || fromPos == string::npos) {
+        cout << "Error: Invalid syntax." << endl;
+        return "";
+    }
+
+    // Extract table name
+    if(fromPos != string::npos){
+        size_t tableNameStart = fromPos + 4; // Skip "FROM"
+        string inputTableName = command.substr(tableNameStart);
+        inputTableName = trim(inputTableName);  // Remove leading/trailing spaces
+        if (!inputTableName.empty() && inputTableName.back() == ';') {
+            inputTableName.pop_back();
+        }
+
+        // Check if table name is valid
+        if (inputTableName != tableName) {
+            cout << "Error: Table " << inputTableName << " does not exist." << endl;
+            return "";
+        }
+
+        size_t numRows = 0;
+        for (const auto& row : columnAllData) {
+            bool isEmpty = true;
+            for (const auto& value : row) {
+                if (!value.empty()) { // Check if value is non-empty
+                    isEmpty = false;
+                    break;
+                }
+            }
+            if (!isEmpty) {
+                ++numRows;
+            }
+        }
+
+        cout << "> SELECT COUNT(*) FROM " << inputTableName <<endl;
+        cout << numRows << endl;
+
+    }
+}
 
 int main() {
     ifstream inputfile;
@@ -517,6 +565,11 @@ int main() {
                             else if (words.find("VALUES") != string::npos){
                                 ofstream outputFile;
                                 insertIntoTable(words, outputFile, tableName, *pointer1, *pointer2);
+                            }
+                            else if (words.find("COUNT") != string::npos){
+                                ofstream outputFile;
+                                //wonpil
+                                countRows(words, outputFile, tableName, *pointer3);
                             }
                         }
                     }
