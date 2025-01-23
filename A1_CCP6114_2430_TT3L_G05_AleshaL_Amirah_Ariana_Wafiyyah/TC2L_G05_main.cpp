@@ -285,14 +285,6 @@ bool validateColVal(const string& command, const vector<string>& colNames, const
         return false;
     }
 
-    // Check if all input column names exist in the table column names
-    for (const auto& inputCol : inputColumns) {
-        if (find(colNames.begin(), colNames.end(), inputCol) == colNames.end()) {
-            cout << "Error: Column " << inputCol << " does not exist in the table." << endl;
-            return false;
-        }
-    }
-
     // Check if the data types match for each value
     for (size_t i = 0; i < inputColumns.size(); ++i) {
         auto it = find(colNames.begin(), colNames.end(), inputColumns[i]);
@@ -382,16 +374,16 @@ string insertIntoTable(string& command, ofstream& outputFile, const string& tabl
     }
 
     if(valuesPos != string::npos){
-    cout << "   (";
+    cout << " (";
     for (size_t i = 0; i < colNames.size(); ++i) {
         cout << colNames[i];
         if (i < colNames.size() - 1) {
             cout << ", ";
         }
     }
-    cout << ")" << endl;
+    cout << ") ";
 
-    cout << "   VALUES (";
+    cout << "VALUES (";
     for (size_t i = 0; i < tableData.size(); ++i) {
         cout << tableData[i];
         if (i < tableData.size() - 1) {
@@ -428,10 +420,62 @@ string insertIntoTable(string& command, ofstream& outputFile, const string& tabl
     return "INSERT INTO processed";
 }
 
-string countRows (string& command, ofstream& outputFile, const string& tableName, const vector<vector<string>>& columnAllData){
-    //dowoon
+string showTable (string& command, ofstream& outputFile, const string& tableName, const vector<string>& colNames, const vector<vector<string>>& columnAllData){
+
     istringstream ss(command);
-    string word, inputTableName;
+    string word;
+
+    size_t fromPos = command.find("FROM");
+
+    if(fromPos != string::npos){
+        size_t tableNameStart = fromPos + 4; // Skip "FROM"
+        string inputTableName = command.substr(tableNameStart);
+        inputTableName = trim(inputTableName);  // Remove leading/trailing spaces
+        if (!inputTableName.empty() && inputTableName.back() == ';') {
+            inputTableName.pop_back();
+        }
+
+        if (inputTableName == tableName) {
+
+            cout << ">SELECT * FROM " << tableName << ";" << endl;
+            // Print column names
+            for (size_t i = 0; i < colNames.size(); ++i) {
+                cout << colNames[i];
+                if (i < colNames.size() - 1) {
+                    cout << ", ";
+                }
+            }
+            cout << endl;
+
+            // Print rows
+            for (const auto& row : columnAllData) {
+                for (size_t j = 0; j < row.size(); ++j) {
+                    string value = row[j];
+                    // Check if value starts and ends with single quotes
+                    if (!value.empty() && value.front() == '\'' && value.back() == '\'') {
+                        value = value.substr(1, value.size() - 2); // Remove the single quotes
+                    }
+                    cout << value;
+                    if (j < row.size() - 1) {
+                        cout << ", ";
+                    }
+                }
+                cout << endl;
+            }
+        }
+        else {
+            cout << "Error: Table " << inputTableName << " does not exist." << endl;
+            return "";
+        }
+
+    }
+
+    return "";
+}
+
+string countRows (string& command, ofstream& outputFile, const string& tableName, const vector<vector<string>>& columnAllData){
+    istringstream ss(command);
+    string word;
     int numRows;
 
     size_t countPos = command.find("COUNT(*)");
@@ -475,6 +519,8 @@ string countRows (string& command, ofstream& outputFile, const string& tableName
         cout << numRows << endl;
 
     }
+
+    return "";
 }
 
 int main() {
@@ -558,18 +604,19 @@ int main() {
                                     command.clear();
                                     }
                                 }
-                            else if (words.find("INSERT INTO") != string::npos){
+                            else if (words.find("INSERT INTO") != string::npos || words.find("VALUES") != string::npos){
                                 ofstream outputFile;
                                 insertIntoTable(words, outputFile, tableName, *pointer1, *pointer2);
                             }
-                            else if (words.find("VALUES") != string::npos){
+                            else if (words.find("SELECT COUNT(*)") != string::npos){
                                 ofstream outputFile;
-                                insertIntoTable(words, outputFile, tableName, *pointer1, *pointer2);
-                            }
-                            else if (words.find("COUNT") != string::npos){
-                                ofstream outputFile;
-                                //wonpil
                                 countRows(words, outputFile, tableName, *pointer3);
+                                cout << endl;
+                            }
+                            else if (words.find("SELECT *") != string::npos){
+                                ofstream outputFile;
+                                showTable(words, outputFile, tableName, *pointer1, *pointer3);
+                                cout << endl;
                             }
                         }
                     }
