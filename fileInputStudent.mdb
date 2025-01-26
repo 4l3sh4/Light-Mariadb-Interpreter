@@ -1,0 +1,32 @@
+CREATE fileOutputStudent.txt;
+DATABASES;
+
+CREATE TABLE student(
+student_id TEXT,
+student_name TEXT,
+student_phone TEXT,
+student_email TEXT
+);
+
+INSERT INTO
+student(student_id,student_name,student_phone,student_email) VALUES ('242UC244T1','Amirah Sofea','012-3378031','amirahsofea@gmail.com');
+INSERT INTO
+student(student_id,student_name,student_phone,student_email) VALUES ('242UC244F6','Brian Zeller','017-3632881','brianzeller@gmail.com');
+INSERT INTO
+student(student_id,student_name,student_phone,student_email) VALUES ('242UC248E7,'Haila Zamri','013-3832741','hailazamri@gmail.com');
+INSERT INTO
+student(student_id,student_name,student_phone,student_email) VALUES ('242UC248B2','Vincent Wong','012-4753816','vincentwong@gmail.com');
+INSERT INFO
+student(student_id,student_name,student_phone,student_email) VALUES ('242UC244G3','Marilyn Barb','012-4623825','marilynbarb@gmail.com');
+SELECT * FROM customer;
+
+TABLES;
+
+UPDATE student SET student_email='vincentw0ng@gmail.com' WHERE student_id=242UC248B2;
+UPDATE student SET student_name='Haila Zamiri' WHERE student_id=242UC248E7;
+SELECT * FROM student;
+
+DELETE FROM student WHERE student_id=242UC244F6;
+SELECT * FROM student;
+
+SELECT COUNT(*) FROM student;

@@ -1,0 +1,44 @@
+CREATE fileOutputBand.txt;
+DATABASES;
+
+CREATE TABLE band(
+band_name TEXT,
+band_lead TEXT,
+band_genre TEXT,
+band_country_of_origin TEXT,
+band_debut_year INT,
+band_fanbase TEXT
+);
+
+INSERT INTO
+band(band_name,band_lead,band_genre,band_country_of_origin,band_debut_year,band_fanbase) VALUES ('Day6','Sungjin','Rock','South Korea',2015,'My Day');
+INSERT INTO
+band(band_name,band_lead,band_genre,band_country_of_origin,band_debut_year,band_fanbase) VALUES ('The Rose','Woosung','Indie','South Korea',2017,'Black Rose');
+INSERT INTO
+band(band_name,band_lead,band_genre,band_country_of_origin,band_debut_year,band_fanbase) VALUES ('Green Day','Billie','Punk Rock','America',1987,'Idiot Nation');
+INSERT INTO
+band(band_name,band_lead,band_genre,band_country_of_origin,band_debut_year,band_fanbase) VALUES ('Sum 41','Dericck','Punk Rock','Canada',2001,'Skumfuks');
+INSERT INTO
+band(band_name,band_lead,band_genre,band_country_of_origin,band_debut_year,band_fanbase) VALUES ('Chase Atlantic','Mitchael Cave','Alternative Pop','Australia',2014,'Angels');
+INSERT INTO
+band(band_name,band_lead,band_genre,band_country_of_origin,band_debut_year,band_fanbase) VALUES ('Set it Off','Cody Carson','Rock','America',2008,'Freaks');
+INSERT INTO
+band(band_name,band_lead,band_genre,band_country_of_origin,band_debut_year,band_fanbase) VALUES ('Twenty One Pilots','Tyler','Alternative Rock','America',2009,'The Skeleton Clique');
+INSERT INTO
+band(band_name,band_lead,band_genre,band_country_of_origin,band_debut_year,band_fanbase) VALUES ('Fall Out Boy','Patrick Stump','Pop Punk','America',2001,'Youngbloods');
+INSERT INTO
+band(band_name,band_lead,band_genre,band_country_of_origin,band_debut_year,band_fanbase) VALUES ('Foster The People','Mark Foster','Indie Pop','America',2009,'The People');
+SELECT * FROM customer;
+
+TABLES;
+
+UPDATE band SET band_lead='Deryck' WHERE band_name='Sum 41';
+UPDATE band SET band_lead='Mitchel Cave' WHERE band_name='Chase Atlantic';
+UPDATE band SET band_fanbase='Black Rose' WHERE band_name='The Rose';
+SELECT * FROM band;
+
+DELETE FROM band WHERE band_name='Foster The People';
+DELETE FROM band WHERE band_name='Twenty One Pilots';
+SELECT * FROM band;
+
+SELECT COUNT(*) FROM band;

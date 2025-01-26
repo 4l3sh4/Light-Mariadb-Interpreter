@@ -1,0 +1,36 @@
+CREATE fileOutputTvShow.txt;
+DATABASES;
+
+CREATE TABLE tvshow(
+tvshow_name TEXT,
+tvshow_genre TEXT,
+tvshow_seasons INT,
+tvshow_year_released INT,
+tvshow_ratings INT,
+);
+
+INSERT INTO
+tvshow(tvshow_name,tvshow_genre,tvshow_seasons,tvshow_year_released,tvshow_fan_fav) VALUES ('The Nanny','Romance',6,1993,7.1/10);
+INSERT INTO
+tvshow(tvshow_name,tvshow_genre,tvshow_seasons,tvshow_year_released,tvshow_fan_fav) VALUES ('Money Heist','Thriller',5,2015,8.2/10);
+INSERT INTO
+tvshow(tvshow_name,tvshow_genre,tvshow_seasons,tvshow_year_released,tvshow_fan_fav) VALUES ('The Big Bang Theory','Sitcom',12,2007,8.1/10);
+INSERT INTO
+tvshow(tvshow_name,tvshow_genre,tvshow_seasons,tvshow_year_released,tvshow_fan_fav) VALUES ('Breaking Bad','Drama',5,2008,9.5/10);
+INSERT INTO
+tvshow(tvshow_name,tvshow_genre,tvshow_seasons,tvshow_year_released,tvshow_fan_fav) VALUES ('Dexter','Drama',8,2006,8.6/10);
+INSERT INTO
+tvshow(tvshow_name,tvshow_genre,tvshow_seasons,tvshow_year_released,tvshow_fan_fav) VALUES ('Hannibal','Horror',3,2013,8.5/10);
+SELECT * FROM customer;
+
+TABLES;
+
+UPDATE tvshow SET tvshow_genre='Sitcom' WHERE tvshow_name='The Nanny';
+UPDATE tvshow SET tvshow_year_released=2017 WHERE tvshow_name='Money Heist';
+SELECT * FROM tvshow;
+
+DELETE FROM tvshow WHERE tvshow_name='Dexter';
+SELECT * FROM tvshow;
+
+SELECT COUNT(*) FROM tvshow;
+
